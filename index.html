@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>战术突入：撤离行动</title>
+    <link rel="stylesheet" href="/src/ui/style.css" />
+  </head>
+  <body>
+    <!-- In-game HUD -->
+    <div id="hud" class="hidden">
+      <div id="crosshair">
+        <div class="ch ch-t"></div><div class="ch ch-b"></div>
+        <div class="ch ch-l"></div><div class="ch ch-r"></div>
+        <div id="hitmarker"></div>
+      </div>
+      <div id="damage-vignette"></div>
+      <div id="lowhp-vignette"></div>
+
+      <div id="hud-tl">
+        <div id="health-panel">
+          <div class="bar-label">生命 <span id="hp-text">100</span></div>
+          <div class="bar"><div id="hp-bar"></div></div>
+          <div class="bar-label">护甲 <span id="ar-text">0</span></div>
+          <div class="bar armor"><div id="ar-bar"></div></div>
+        </div>
+        <div id="alert-panel">
+          <div class="bar-label">警戒等级</div>
+          <div class="alert-bar"><div id="alert-bar"></div></div>
+          <div id="alert-text">隐蔽</div>
+        </div>
+      </div>
+
+      <div id="hud-tr">
+        <canvas id="minimap" width="180" height="180"></canvas>
+        <div id="timer">08:00</div>
+      </div>
+
+      <div id="hud-bl">
+        <div id="objectives">
+          <div class="panel-title">任务目标</div>
+          <ul id="objective-list"></ul>
+          <div id="extraction-status"></div>
+        </div>
+      </div>
+
+      <div id="hud-br">
+        <div id="weapon-panel">
+          <div id="weapon-name">AK 突击步枪</div>
+          <div id="ammo-display"><span id="ammo-mag">30</span> / <span id="ammo-reserve">120</span></div>
+          <div id="reload-hint" class="hidden">换弹中...</div>
+          <div id="weapon-slots">
+            <span data-slot="pistol">1 手枪</span>
+            <span data-slot="rifle">2 步枪</span>
+            <span data-slot="shotgun">3 霰弹</span>
+          </div>
+        </div>
+        <div id="inventory-panel">
+          <div class="panel-title">背包 <span id="inv-used">0/8</span></div>
+          <div id="inv-slots"></div>
+        </div>
+      </div>
+
+      <div id="interact-prompt" class="hidden"></div>
+      <div id="objective-progress" class="hidden"><div id="objective-progress-bar"></div></div>
+      <div id="notifications"></div>
+      <div id="controls-hint">WASD 移动 · 鼠标视角 · Shift 奔跑 · Ctrl 蹲下 · 右键瞄准 · R 换弹 · E 互动 · F 使用 · G 丢弃 · Esc 暂停</div>
+    </div>
+
+    <!-- Main menu -->
+    <div id="main-menu" class="screen">
+      <div class="menu-box">
+        <h1>战术突入：撤离行动</h1>
+        <p class="subtitle">TACTICAL ASSAULT: EXTRACTION</p>
+        <div class="menu-buttons">
+          <button id="btn-new">开始新游戏</button>
+          <button id="btn-continue">继续游戏</button>
+          <button id="btn-load">读取存档</button>
+          <button id="btn-settings">设置</button>
+          <button id="btn-quit">退出</button>
+        </div>
+        <div id="save-quick-info"></div>
+      </div>
+    </div>
+
+    <!-- Load / save slots -->
+    <div id="load-screen" class="screen hidden">
+      <div class="menu-box">
+        <h2 id="slots-title">读取存档</h2>
+        <div id="slots-list"></div>
+        <div class="menu-buttons horizontal">
+          <button id="btn-slots-back">返回</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pause -->
+    <div id="pause-screen" class="screen hidden">
+      <div class="menu-box">
+        <h2>已暂停</h2>
+        <div class="menu-buttons">
+          <button id="btn-resume">继续游戏</button>
+          <button id="btn-quicksave">快速保存 (存档位 1)</button>
+          <button id="btn-save-as">保存到...</button>
+          <button id="btn-pause-settings">设置</button>
+          <button id="btn-restart">重新开始本任务</button>
+          <button id="btn-abandon">放弃任务返回主菜单</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings-screen" class="screen hidden">
+      <div class="menu-box">
+        <h2>设置</h2>
+        <div class="settings-grid">
+          <label>主音量 <input type="range" id="set-master" min="0" max="1" step="0.05" /></label>
+          <label>音效音量 <input type="range" id="set-sfx" min="0" max="1" step="0.05" /></label>
+          <label>鼠标灵敏度 <input type="range" id="set-sens" min="0.2" max="3" step="0.1" /></label>
+          <label>视野范围 (FOV) <input type="range" id="set-fov" min="60" max="100" step="1" /></label>
+          <label>画面质量
+            <select id="set-quality">
+              <option value="low">低</option>
+              <option value="medium">中</option>
+              <option value="high">高</option>
+            </select>
+          </label>
+          <label>鼠标 Y 轴 <select id="set-invert"><option value="0">正常</option><option value="1">反转</option></select></label>
+        </div>
+        <div id="settings-error" class="error-text"></div>
+        <div class="menu-buttons horizontal">
+          <button id="btn-settings-back">返回</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- End screen -->
+    <div id="end-screen" class="screen hidden">
+      <div class="menu-box">
+        <h2 id="end-title">任务完成</h2>
+        <div id="end-reason"></div>
+        <div id="end-stats"></div>
+        <div class="menu-buttons horizontal">
+          <button id="btn-end-restart">再来一局</button>
+          <button id="btn-end-menu">返回主菜单</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="hidden"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

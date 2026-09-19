@@ -1,0 +1,20 @@
+{
+  "name": "tactical-assault-extraction",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Tactical Assault: Extraction - a browser first-person tactical FPS built with Three.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0",
+    "vite": "^5.4.8"
+  }
+}

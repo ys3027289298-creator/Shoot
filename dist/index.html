@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tactical Breach &amp; Extract</title>
+  <script type="module" crossorigin src="/assets/index-C7NfthAD.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-qo2OK99c.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- ===================== HUD ===================== -->
+    <div id="hud" class="hidden">
+      <div id="crosshair">
+        <span class="ch ch-t"></span><span class="ch ch-b"></span>
+        <span class="ch ch-l"></span><span class="ch ch-r"></span>
+        <span id="hitmarker"></span>
+      </div>
+
+    <div id="hurt-vignette"></div>
+    <div id="lowhp-vignette"></div>
+    <div id="dmg-top" class="dmg-dir"></div>
+    <div id="dmg-bottom" class="dmg-dir"></div>
+    <div id="dmg-left" class="dmg-dir"></div>
+    <div id="dmg-right" class="dmg-dir"></div>
+
+      <div id="hud-top">
+        <div id="objectives-panel">
+          <h3>Objectives</h3>
+          <ul id="objectives-list"></ul>
+        </div>
+        <div id="timer">08:00</div>
+        <div id="alert-panel">
+          <div class="alert-label">ALERT</div>
+          <div class="alert-bar"><div id="alert-fill"></div></div>
+          <div id="alert-text">Calm</div>
+        </div>
+      </div>
+
+      <div id="minimap-wrap">
+        <canvas id="minimap" width="180" height="180"></canvas>
+        <div id="minimap-label">TACTICAL MAP</div>
+      </div>
+
+      <div id="hud-bottom">
+        <div id="vitals">
+          <div class="vital"><span class="vital-label">HP</span>
+            <div class="vital-bar"><div id="hp-fill"></div></div><span id="hp-text">100</span></div>
+          <div class="vital"><span class="vital-label">ARM</span>
+            <div class="vital-bar armor"><div id="armor-fill"></div></div><span id="armor-text">50</span></div>
+        </div>
+        <div id="weapon-panel">
+          <div id="weapon-name">M9 Pistol</div>
+          <div id="weapon-ammo"><span id="ammo-mag">12</span> / <span id="ammo-reserve">48</span></div>
+          <div id="reload-indicator" class="hidden">RELOADING…</div>
+        </div>
+      </div>
+
+      <div id="interact-prompt" class="hidden"></div>
+      <div id="hold-progress" class="hidden">
+        <div id="hold-label">Disabling jammer…</div>
+        <div class="hold-bar"><div id="hold-fill"></div></div>
+      </div>
+      <div id="notices"></div>
+      <div id="controls-hint">WASD move · Shift run · Ctrl crouch · Space jump · RMB aim · LMB fire · R reload · E interact · 1/2/3 weapons · Tab backpack · Esc menu</div>
+    </div>
+
+    <!-- ===================== MAIN MENU ===================== -->
+    <div id="main-menu" class="screen">
+      <div class="menu-box">
+        <h1>TACTICAL BREACH <span>&amp; EXTRACT</span></h1>
+        <p class="subtitle">Infiltrate · Complete the objectives · Get out alive</p>
+        <div id="mission-card" class="mission-card">
+          <div class="mission-title">Operation Black Dusk</div>
+          <div class="mission-desc">Breach the hostile compound, steal the encrypted drive, disable the comms jammer and extract the detainee before the timer runs out.</div>
+          <div class="mission-meta"><span>3 objectives</span><span>8:00 limit</span><span>3 save slots</span></div>
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-start" class="primary">Start Mission</button>
+          <button id="btn-continue">Continue</button>
+          <button id="btn-settings">Settings</button>
+          <button id="btn-quit">Quit</button>
+        </div>
+        <div id="version-tag">v1.0</div>
+      </div>
+    </div>
+
+    <!-- ===================== SAVE / LOAD ===================== -->
+    <div id="saves-screen" class="screen hidden">
+      <div class="menu-box narrow">
+        <h2 id="saves-title">Save Game</h2>
+        <div id="save-slots"></div>
+        <div id="saves-error" class="error-msg"></div>
+        <button class="ghost" data-back>Back</button>
+      </div>
+    </div>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <div id="settings-screen" class="screen hidden">
+      <div class="menu-box narrow">
+        <h2>Settings</h2>
+        <label class="setting-row">Volume
+          <input type="range" id="set-volume" min="0" max="1" step="0.05" />
+          <span id="set-volume-val"></span>
+        </label>
+        <label class="setting-row">Graphics Quality
+          <select id="set-quality">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+        <label class="setting-row">Mouse Sensitivity
+          <input type="range" id="set-sensitivity" min="0.2" max="3" step="0.05" />
+          <span id="set-sensitivity-val"></span>
+        </label>
+        <label class="setting-row">Field of View
+          <input type="range" id="set-fov" min="60" max="100" step="1" />
+          <span id="set-fov-val"></span>
+        </label>
+        <div class="menu-buttons">
+          <button id="btn-settings-apply" class="primary">Apply</button>
+          <button class="ghost" data-back>Back</button>
+        </div>
+        <div id="settings-error" class="error-msg"></div>
+      </div>
+    </div>
+
+    <!-- ===================== PAUSE ===================== -->
+    <div id="pause-screen" class="screen hidden">
+      <div class="menu-box narrow">
+        <h2>Paused</h2>
+        <div class="menu-buttons vertical">
+          <button id="btn-resume" class="primary">Resume</button>
+          <button id="btn-save">Save Game</button>
+          <button id="btn-pause-settings">Settings</button>
+          <button id="btn-restart">Restart Mission</button>
+          <button id="btn-quit-menu">Abort to Main Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== BACKPACK ===================== -->
+    <div id="bag-screen" class="screen hidden">
+      <div class="menu-box narrow">
+        <h2>Backpack <span id="bag-slots" class="muted"></span></h2>
+        <div id="bag-reserves" class="reserves"></div>
+        <ul id="bag-list"></ul>
+        <div class="menu-buttons">
+          <button class="ghost" id="btn-bag-close">Close (Tab)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== END SCREEN ===================== -->
+    <div id="end-screen" class="screen hidden">
+      <div class="menu-box narrow">
+        <h2 id="end-title">Mission Complete</h2>
+        <div id="end-reason" class="end-reason"></div>
+        <div id="end-stats" class="stats-grid"></div>
+        <div class="menu-buttons">
+          <button id="btn-end-restart" class="primary">Play Again</button>
+          <button id="btn-end-menu">Main Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== QUIT OVERLAY ===================== -->
+    <div id="quit-screen" class="screen hidden">
+      <div class="menu-box narrow">
+        <h2>Mission Exited</h2>
+        <p class="subtitle">Your progress is saved in one of the 3 slots if you saved. Relunch whenever ready.</p>
+        <div class="menu-buttons">
+          <button id="btn-quit-back" class="primary">Return to Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="save-toast" class="toast hidden"></div>
+  </div>
+</body>
+</html>
